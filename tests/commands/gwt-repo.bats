@@ -54,7 +54,8 @@ teardown() {
 @test "gwt-repo: detects master if no main branch" {
   cd "$TEST_REPO"
 
-  # Rename main to master
+  # Delete master if it exists, then rename main to master
+  git branch -D master 2>/dev/null || true
   git branch -m main master
 
   # Create a feature branch
