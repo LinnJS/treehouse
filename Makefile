@@ -112,4 +112,7 @@ reload:
 	@zsh -c 'autoload -U compinit && compinit -q 2>/dev/null; source treehouse.plugin.zsh && gwt help' >/dev/null 2>&1 && echo "✓ Plugin syntax OK" || (echo "✗ Plugin has errors" >&2 && exit 1)
 	@echo ""
 	@echo "To reload in your current shell:"
-	@echo "  source reload.sh"
+	@echo "  source ./reload.sh"
+	@echo ""
+	@echo "Or use the gwt reload command after sourcing once:"
+	@echo "  gwt reload"

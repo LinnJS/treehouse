@@ -8,14 +8,34 @@ if [[ -z "$br" ]]; then
   echo "Quick access to worktrees - creates if needed, then switches to it." >&2
   echo "" >&2
   echo "Examples:" >&2
-  echo "  gwt main              # Switch to main branch worktree" >&2
-  echo "  gwt feature-auth      # Create and switch to feature-auth" >&2
-  echo "  gwt help              # Show detailed help" >&2
+  echo "  gwt main                  # Switch to main branch worktree" >&2
+  echo "  gwt feat/authentication   # Create and switch to feature branch" >&2
+  echo "  gwt bug/fix-login         # Create and switch to bugfix branch" >&2
+  echo "  gwt repo                  # Switch to repository root directory" >&2
+  echo "  gwt help                  # Show detailed help" >&2
   return 1
 fi
 
+# Reserved command names that should never be treated as branch names
+local -a reserved_commands=(
+  help list add switch open rm prune status repo migrate clean mv pr diff
+  stash-list archive unarchive archives lock unlock locks ignore unignore
+  ignored excludes excludes-list excludes-edit reload
+)
+
+# Check if the argument is a reserved command name
+# Exception: "main" is allowed as a branch name
+if [[ "$br" != "main" ]] && (( ${reserved_commands[(Ie)$br]} )); then
+  # It's a reserved command - delegate to it directly
+  # Autoload will handle loading the function if it exists
+  shift
+  "gwt-$br" "$@"
+  return $?
+fi
+
 # Check if the argument is a command (delegate to gwt-<command>)
-if command -v "gwt-$br" >/dev/null 2>&1; then
+# Exception: "main" is treated as a branch, not a command (use "gwt repo" or "gwt-main" for repo root)
+if [[ "$br" != "main" ]] && command -v "gwt-$br" >/dev/null 2>&1; then
   shift
   "gwt-$br" "$@"
   return $?

@@ -1,0 +1,36 @@
+# Reload the treehouse plugin (useful for development).
+
+echo "Reloading treehouse plugin..."
+
+# Find the plugin directory
+local plugin_dir="${TREEHOUSE_PLUGIN_DIR:-}"
+
+# If not set, try to find it
+if [[ -z "$plugin_dir" ]]; then
+  # Try to find it in common locations
+  if [[ -f "$HOME/.oh-my-zsh/custom/plugins/treehouse/treehouse.plugin.zsh" ]]; then
+    plugin_dir="$HOME/.oh-my-zsh/custom/plugins/treehouse"
+  elif [[ -f "$HOME/treehouse/treehouse.plugin.zsh" ]]; then
+    plugin_dir="$HOME/treehouse"
+  elif [[ -f "./treehouse.plugin.zsh" ]]; then
+    plugin_dir="$(pwd)"
+  else
+    echo "Error: Could not find treehouse plugin directory" >&2
+    echo "Set TREEHOUSE_PLUGIN_DIR environment variable or cd to plugin directory" >&2
+    return 1
+  fi
+fi
+
+# Verify the plugin file exists
+if [[ ! -f "$plugin_dir/treehouse.plugin.zsh" ]]; then
+  echo "Error: Plugin file not found at: $plugin_dir/treehouse.plugin.zsh" >&2
+  return 1
+fi
+
+# Unset the loaded flag to allow reload
+unset TREEHOUSE_PLUGIN_LOADED
+
+# Source the plugin
+source "$plugin_dir/treehouse.plugin.zsh"
+
+echo "✓ Plugin reloaded from: $plugin_dir"

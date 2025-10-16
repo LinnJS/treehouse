@@ -1,0 +1,28 @@
+# Navigate to the original repository directory and checkout the default branch.
+
+local repo_root="$(_gwt_repo)" || return 1
+cd "$repo_root" || return 1
+
+# Detect the default/main branch
+local default_branch=""
+if git rev-parse --verify main >/dev/null 2>&1; then
+  default_branch="main"
+elif git rev-parse --verify master >/dev/null 2>&1; then
+  default_branch="master"
+else
+  default_branch="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')"
+fi
+
+# If we found a default branch and we're not already on it, switch to it
+local current_branch="$(_gwt_branch)"
+if [[ -n "$default_branch" ]] && [[ "$current_branch" != "$default_branch" ]]; then
+  if git diff-index --quiet HEAD 2>/dev/null; then
+    git checkout "$default_branch" 2>/dev/null || {
+      echo "Warning: Could not checkout $default_branch" >&2
+    }
+  else
+    echo "Warning: Working tree has uncommitted changes, not switching branch" >&2
+  fi
+fi
+
+echo "Switched to repository root: $repo_root"
