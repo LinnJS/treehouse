@@ -5,6 +5,7 @@
 These are **skeleton tests** - basic autoload verification only.
 
 Each test file contains:
+
 - ✅ Single test: Verifies command is autoloadable (fast)
 - 📝 TODO comments for adding comprehensive tests later
 
@@ -41,6 +42,7 @@ When adding comprehensive coverage to a command:
 5. Consider adding integration tests separately
 
 Example:
+
 ```bash
 #!/usr/bin/env bats
 # Tests for gwt-add command

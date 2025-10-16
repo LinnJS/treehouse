@@ -1,1 +1,2 @@
-
+# Check if tmux is available and we're in a tmux session
+[[ -n "$TMUX" ]] && command -v tmux >/dev/null 2>&1

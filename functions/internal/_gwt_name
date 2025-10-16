@@ -1,1 +1,3 @@
-
+# Get the repository name (basename of repo root)
+local repo="$(_gwt_repo)" || return 1
+basename "$repo"

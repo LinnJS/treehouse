@@ -1,0 +1,128 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel in-progress runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+# Scoped permissions for security
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Zsh (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh git
+
+      - name: Install Zsh (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install zsh
+
+      - name: Verify Zsh installation
+        run: |
+          zsh --version
+          which zsh
+          git --version
+
+      - name: Syntax validation
+        run: |
+          echo "Validating shell script syntax..."
+          # Check main plugin file
+          echo "Checking treehouse.plugin.zsh"
+          zsh -n treehouse.plugin.zsh
+          # Check all function files (gwt-* and internal/_gwt_*)
+          for file in functions/* functions/internal/*; do
+            if [[ -f "$file" ]]; then
+              echo "Checking $file"
+              zsh -n "$file" || exit 1
+            fi
+          done
+
+      - name: Install BATS
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get install -y bats
+          else
+            brew install bats-core
+          fi
+
+      - name: Verify BATS installation
+        run: |
+          bats --version
+
+      - name: Run quick load test
+        run: make quick
+
+      - name: Run all tests
+        run: make test
+
+  lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run markdown lint
+        run: make lint
+
+  report:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: always()
+
+    steps:
+      - name: Report test results
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.test.result }}" == "success" ]]; then
+            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "${{ needs.lint.result }}" == "success" ]]; then
+            echo "✅ Markdown lint passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Markdown lint failed" >> $GITHUB_STEP_SUMMARY
+          fi

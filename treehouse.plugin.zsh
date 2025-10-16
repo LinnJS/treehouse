@@ -54,20 +54,22 @@ if [[ -n "$ZSH_VERSION" ]]; then
     autoload -U compinit && compinit -q 2>/dev/null
   fi
 
-  # Register completions
-  compdef _gwt gwt
-  compdef _gwt gwt-add
-  compdef _gwt gwt-switch
-  compdef _gwt gwt-rm
-  compdef _gwt gwt-open
-  compdef _gwt gwt-lock
-  compdef _gwt gwt-unlock
-  compdef _gwt gwt-archive
-  compdef _gwt gwt-unarchive
-  compdef _gwt gwt-mv
-  compdef _gwt gwt-diff
-  compdef _gwt gwt-clean
-  compdef _gwt gwt-pr
+  # Register completions (only if compdef is available)
+  if command -v compdef >/dev/null 2>&1; then
+    compdef _gwt gwt
+    compdef _gwt gwt-add
+    compdef _gwt gwt-switch
+    compdef _gwt gwt-rm
+    compdef _gwt gwt-open
+    compdef _gwt gwt-lock
+    compdef _gwt gwt-unlock
+    compdef _gwt gwt-archive
+    compdef _gwt gwt-unarchive
+    compdef _gwt gwt-mv
+    compdef _gwt gwt-diff
+    compdef _gwt gwt-clean
+    compdef _gwt gwt-pr
+  fi
 fi
 
 # Cleanup

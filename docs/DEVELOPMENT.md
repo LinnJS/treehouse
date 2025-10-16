@@ -130,13 +130,13 @@ cd bats-core
 ### Running Tests
 
 ```zsh
-# Run all tests (34 tests: 8 core + 26 commands)
+# Run all tests (67 tests: 8 core + 59 command tests)
 make test
 
 # Run core tests only (8 tests)
 make test-core
 
-# Run command tests only (26 tests)
+# Run command tests only (59 tests)
 make test-commands
 
 # Run tests directly with BATS
@@ -274,6 +274,7 @@ source ~/.zshrc
 7. Update CHANGELOG.md
 
 Example function structure:
+
 ```zsh
 # functions/gwt-mycommand
 # Description of the command

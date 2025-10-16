@@ -1,1 +1,15 @@
+# Construct path for a worktree
+# Usage: _gwt_path_for <repo-name> <branch-name>
 
+local repo_name="$1"
+local branch="$2"
+
+if [[ -z "$repo_name" ]] || [[ -z "$branch" ]]; then
+  echo "Error: _gwt_path_for requires repo name and branch" >&2
+  return 1
+fi
+
+# Sanitize branch name for filesystem (replace / with -)
+local safe_branch="${branch//\//-}"
+
+echo "$GWT_ROOT/$repo_name/$safe_branch"

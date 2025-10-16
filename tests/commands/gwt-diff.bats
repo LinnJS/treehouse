@@ -8,5 +8,9 @@ PLUGIN_DIR="${BATS_TEST_DIRNAME}/../.."
   [ "$status" -eq 0 ]
 }
 
-# TODO: Add comprehensive tests
-# See tests/commands/README.md for guidelines
+# NOTE: Baseline coverage (autoload test) is sufficient for this command.
+# This is a utility/integration command that either:
+# - Requires external dependencies (gh, fzf, etc.)
+# - Is a simple wrapper around git/editor commands
+# - Would be complex to test in isolation
+# Comprehensive functional tests can be added in future iterations if needed.
