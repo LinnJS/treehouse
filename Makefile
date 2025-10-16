@@ -67,7 +67,7 @@ lint:
 		exit 1; \
 	}
 	@echo "Running markdown lint..."
-	@npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude
+	@NODE_NO_WARNINGS=1 npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude
 
 # Auto-fix markdown lint issues
 lint-fix:
@@ -77,7 +77,7 @@ lint-fix:
 		exit 1; \
 	}
 	@echo "Auto-fixing markdown lint issues..."
-	@npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude --fix
+	@NODE_NO_WARNINGS=1 npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude --fix
 
 # Install to user's oh-my-zsh
 install:

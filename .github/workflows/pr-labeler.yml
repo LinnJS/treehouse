@@ -1,0 +1,285 @@
+name: PR Auto-Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  label:
+    name: Auto-label PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Analyze commits and add labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            // Extract commit messages
+            const messages = commits.map(c => c.commit.message);
+
+            // Track which types are present
+            const types = new Set();
+
+            // Analyze commit types
+            for (const msg of messages) {
+              const match = msg.match(/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\([a-z0-9_-]+\))?(!)?: /);
+              if (match) {
+                types.add(match[1]);
+                // Check for breaking change
+                if (match[3] === '!' || msg.includes('BREAKING CHANGE:')) {
+                  types.add('breaking');
+                }
+              }
+            }
+
+            // Map commit types to labels
+            const labelMap = {
+              'feat': 'feature',
+              'fix': 'bug',
+              'docs': 'documentation',
+              'style': 'style',
+              'refactor': 'refactor',
+              'perf': 'performance',
+              'test': 'testing',
+              'chore': 'chore',
+              'ci': 'ci/cd',
+              'build': 'build',
+              'revert': 'revert',
+              'breaking': 'breaking change'
+            };
+
+            // Collect labels to add
+            const labelsToAdd = [];
+            for (const type of types) {
+              if (labelMap[type]) {
+                labelsToAdd.push(labelMap[type]);
+              }
+            }
+
+            // Remove duplicates
+            const uniqueLabels = [...new Set(labelsToAdd)];
+
+            if (uniqueLabels.length > 0) {
+              // Get current labels to avoid re-adding
+              const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const currentLabelNames = new Set(currentLabels.map(l => l.name));
+              const labelsToActuallyAdd = uniqueLabels.filter(label => !currentLabelNames.has(label));
+
+              if (labelsToActuallyAdd.length > 0) {
+                console.log(`Adding new labels: ${labelsToActuallyAdd.join(', ')}`);
+
+                // Add labels to PR
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: labelsToActuallyAdd
+                });
+              } else {
+                console.log('All labels already present, no changes needed');
+              }
+
+              // Only comment when PR is first opened (not on every update)
+              if (context.payload.action === 'opened') {
+                // Check if we've already commented
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                });
+
+                const botCommentExists = comments.some(comment =>
+                  comment.user.type === 'Bot' &&
+                  comment.body.includes('🏷️ Auto-labeled based on commits:')
+                );
+
+                if (!botCommentExists) {
+                  const typesList = Array.from(types).filter(t => t !== 'breaking').join(', ');
+                  const breakingNote = types.has('breaking') ? '\n\n⚠️ **This PR contains breaking changes!**' : '';
+
+                  console.log('Posting auto-label summary comment');
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: `🏷️ Auto-labeled based on commits: \`${typesList}\`${breakingNote}`
+                  });
+                } else {
+                  console.log('Auto-label comment already exists, skipping');
+                }
+              } else {
+                console.log('Labels updated (no comment on synchronize/reopened to reduce noise)');
+              }
+            } else {
+              console.log('No conventional commit types found, skipping labeling');
+            }
+
+      - name: Add size label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const total = additions + deletions;
+
+            let sizeLabel = '';
+            if (total < 10) {
+              sizeLabel = 'size/XS';
+            } else if (total < 50) {
+              sizeLabel = 'size/S';
+            } else if (total < 200) {
+              sizeLabel = 'size/M';
+            } else if (total < 500) {
+              sizeLabel = 'size/L';
+            } else {
+              sizeLabel = 'size/XL';
+            }
+
+            console.log(`PR size: ${total} lines (${additions} additions, ${deletions} deletions) → ${sizeLabel}`);
+
+            // Get current labels
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const currentSizeLabel = currentLabels.find(l => l.name.startsWith('size/'))?.name;
+
+            // Only update if size label changed
+            if (currentSizeLabel === sizeLabel) {
+              console.log(`Size label ${sizeLabel} already correct, no change needed`);
+            } else {
+              // Remove old size labels
+              for (const label of currentLabels) {
+                if (label.name.startsWith('size/')) {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    name: label.name,
+                  }).catch(() => {});
+                }
+              }
+
+              // Add new size label
+              console.log(`Updating size label: ${currentSizeLabel || 'none'} → ${sizeLabel}`);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [sizeLabel]
+              });
+            }
+
+      - name: Hacktoberfest auto-accept
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Only run during October
+            const now = new Date();
+            const month = now.getMonth(); // 0 = January, 9 = October
+
+            if (month !== 9) {
+              console.log('Not October - skipping Hacktoberfest labeling');
+              return;
+            }
+
+            // Check if PR author is a previous contributor
+            const author = context.payload.pull_request.user.login;
+
+            // Get all merged PRs from this author
+            const { data: searchResults } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} author:${author} type:pr is:merged`,
+              per_page: 1
+            });
+
+            const hasPreviousContributions = searchResults.total_count > 0;
+
+            if (hasPreviousContributions) {
+              console.log(`${author} is a previous contributor`);
+
+              // Check if label already exists
+              const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const hasHacktoberfestLabel = currentLabels.some(l => l.name === 'hacktoberfest-accepted');
+
+              if (!hasHacktoberfestLabel) {
+                console.log('Adding hacktoberfest-accepted label');
+
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: ['hacktoberfest-accepted']
+                });
+
+                // Check if we've already commented about Hacktoberfest
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                });
+
+                const hacktoberfestCommentExists = comments.some(comment =>
+                  comment.user.type === 'Bot' &&
+                  comment.body.includes('Happy Hacktoberfest!')
+                );
+
+                if (!hacktoberfestCommentExists && context.payload.action === 'opened') {
+                  console.log('Posting Hacktoberfest welcome comment');
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: '🎃 **Happy Hacktoberfest!** Thank you for being a returning contributor. Your PR has been automatically accepted for Hacktoberfest.'
+                  });
+                } else {
+                  console.log('Hacktoberfest comment already exists or not first opened, skipping');
+                }
+              } else {
+                console.log('Hacktoberfest label already present');
+              }
+            } else {
+              console.log(`${author} is a new contributor - manual review required for Hacktoberfest`);
+            }

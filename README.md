@@ -181,6 +181,7 @@ See full configuration options in the documentation (coming soon).
 ### Guides
 
 - [Development Guide](docs/DEVELOPMENT.md) - Local setup, testing, and contributing code
+- [Versioning Guide](docs/VERSIONING.md) - Semantic versioning and release process
 - [Installation Guide](docs/INSTALLATION.md) - Coming in v0.2.0
 - [Usage Guide](docs/USAGE.md) - Coming in v0.2.0
 - [Configuration Reference](docs/CONFIGURATION.md) - Coming in v0.2.0

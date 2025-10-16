@@ -32,21 +32,22 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. **Fork the repository** and create your branch from `main`
 2. **Follow the coding style** used throughout the project
-3. **Write clear commit messages** using Conventional Commits format with scope:
-   - `feat(scope): description` for new features
-   - `fix(scope): description` for bug fixes
-   - `docs(scope): description` for documentation changes
-   - `test(scope): description` for test additions/changes
-   - `refactor(scope): description` for code refactoring
-   - `chore(scope): description` for maintenance tasks
+3. **Write clear commit messages** using Conventional Commits format:
+   - Format: `type(dir): Description` where `dir` is the component/directory/command
+   - `feat(dir): Description` for new features
+   - `fix(dir): Description` for bug fixes
+   - `docs(dir): Description` for documentation changes
+   - `test(dir): Description` for test additions/changes
+   - `refactor(dir): Description` for code refactoring
+   - `chore(dir): Description` for maintenance tasks
 
-   Scope examples:
-   - `feat(gwt): add archive support`
-   - `fix(completion): resolve branch name completion`
-   - `docs(readme): update installation instructions`
-   - `test(core): add worktree creation tests`
-   - `refactor(functions): modularize helper functions`
-   - `chore(deps): update dependencies`
+   Examples:
+   - `feat(lock): Add archive support`
+   - `fix(completion): Resolve branch name completion`
+   - `docs(readme): Update installation instructions`
+   - `test(core): Add worktree creation tests`
+   - `refactor(functions): Modularize helper functions`
+   - `chore(deps): Update dependencies`
 4. **Update documentation** if you're changing functionality
 5. **Add tests** if applicable
 6. **Ensure all tests pass** before submitting
@@ -84,8 +85,8 @@ gwt main                      # Test main command
 # 6. Run full test suite
 make test
 
-# 7. Commit with conventional commit format (include scope)
-git commit -m "feat(gwt-add): support creating from remote branches"
+# 7. Commit with conventional commit format
+git commit -m "feat(add): Support creating from remote branches"
 ```
 
 ### Testing
@@ -177,15 +178,88 @@ treehouse/
 - **Git**: 2.20+ (for worktree support)
 - **OS**: macOS, Linux, WSL
 
+## Commit Message Format
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and
+changelog generation. All commits **must** follow this format:
+
+```text
+type(dir): Description
+```
+
+Where `type` is the commit type, `dir` is the component/directory/command name, and `Description` is a brief summary.
+
+### Commit Types & Version Impact
+
+- **feat** - New feature (triggers MINOR version bump)
+- **fix** - Bug fix (triggers PATCH version bump)
+- **perf** - Performance improvement (triggers PATCH version bump)
+- **refactor** - Code refactoring (triggers PATCH version bump)
+- **docs** - Documentation only (no version bump)
+- **test** - Test changes (no version bump)
+- **chore** - Maintenance tasks (no version bump)
+- **ci** - CI configuration (no version bump)
+- **style** - Code formatting (no version bump)
+- **build** - Build system changes (no version bump)
+
+### Breaking Changes
+
+For breaking changes, add `!` after the type/scope or include `BREAKING CHANGE:` in the footer:
+
+```text
+feat(api)!: Remove deprecated authentication method
+
+BREAKING CHANGE: Old auth method removed. Use OAuth2 instead.
+```
+
+This triggers a **MAJOR** version bump.
+
+### Examples
+
+```text
+feat(lock): Add bulk lock operation for multiple worktrees
+fix(status): Resolve issue with uncommitted changes detection
+perf(list): Optimize worktree listing performance
+docs(readme): Update installation instructions
+chore(ci): Add automated release workflow
+```
+
 ## Release Process
 
-Maintainers handle releases following semantic versioning:
+Releases are **fully automated** using GitHub Actions:
 
-1. Update VERSION file
-2. Update CHANGELOG.md
-3. Create git tag: `git tag -a v0.x.0 -m "Release v0.x.0"`
-4. Push tag: `git push origin v0.x.0`
-5. Create GitHub release with notes
+### Automated Release (Recommended)
+
+1. Merge PR to `main` with conventional commits
+2. GitHub Actions automatically:
+   - Analyzes commits since last tag
+   - Determines version bump (major/minor/patch)
+   - Updates VERSION and CHANGELOG.md
+   - Creates git tag
+   - Creates GitHub release with changelog
+
+### Manual Release (Emergency Only)
+
+For hotfixes or manual releases:
+
+```bash
+# Bump version (auto-detects from commits)
+./scripts/bump-version.sh
+
+# Or specify bump type
+./scripts/bump-version.sh major|minor|patch
+
+# Update changelog
+./scripts/update-changelog.sh $(cat VERSION)
+
+# Commit and push
+git add VERSION CHANGELOG.md
+git commit -m "chore(release): bump version to $(cat VERSION) [skip ci]"
+git tag -a "v$(cat VERSION)" -m "Release v$(cat VERSION)"
+git push origin main --tags
+```
+
+For detailed information about versioning and releases, see [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ## Questions?
 
