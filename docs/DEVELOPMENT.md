@@ -89,7 +89,7 @@ source treehouse.plugin.zsh
 
 # Test commands
 gwt help
-gwt main
+gwt origin
 gwt-list
 gwt-status
 

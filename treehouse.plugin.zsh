@@ -20,13 +20,13 @@
 if [[ -n "$TREEHOUSE_PLUGIN_LOADED" ]]; then
   return 0
 fi
-readonly TREEHOUSE_PLUGIN_LOADED=1
+TREEHOUSE_PLUGIN_LOADED=1
 
 # Get absolute path to plugin directory
 # Use ${0:A:h} for compatibility with all plugin managers
 0="${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
-TREEHOUSE_PLUGIN_DIR="${0:A:h}"
+export TREEHOUSE_PLUGIN_DIR="${0:A:h}"
 
 # Source configuration and color support
 source "$TREEHOUSE_PLUGIN_DIR/lib/config.zsh"
@@ -41,7 +41,7 @@ autoload -Uz _gwt_repo _gwt_name _gwt_branch _gwt_path_for _gwt_current_path \
 
 # Autoload all user-facing commands
 autoload -Uz gwt gwt-help gwt-list gwt-add gwt-switch gwt-open gwt-rm gwt-prune \
-  gwt-status gwt-main gwt-migrate gwt-clean gwt-mv gwt-pr gwt-diff gwt-stash-list \
+  gwt-status gwt-main gwt-repo gwt-reload gwt-migrate gwt-clean gwt-mv gwt-pr gwt-diff gwt-stash-list \
   gwt-archive gwt-unarchive gwt-archives gwt-lock gwt-unlock gwt-locks \
   gwt-ignore gwt-unignore gwt-ignored gwt-excludes gwt-excludes-list gwt-excludes-edit
 
@@ -69,8 +69,8 @@ if [[ -n "$ZSH_VERSION" ]]; then
     compdef _gwt gwt-diff
     compdef _gwt gwt-clean
     compdef _gwt gwt-pr
+    compdef _gwt gwt-repo
   fi
 fi
 
-# Cleanup
-unset TREEHOUSE_PLUGIN_DIR
+# Keep TREEHOUSE_PLUGIN_DIR exported for gwt-reload command (don't unset)

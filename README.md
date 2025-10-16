@@ -115,7 +115,7 @@ gwt help                      # Show all commands
 
 # Basic workflow
 gwt main                      # Switch to main branch worktree
-gwt feature-auth              # Create & switch to new feature
+gwt feat/authentication       # Create & switch to new feature
 gwt list                      # List all worktrees
 gwt status                    # Show status of all worktrees
 

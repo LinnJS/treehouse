@@ -79,3 +79,40 @@ teardown() {
   [ "$status" -eq 1 ]
   [[ "$output" == *"Usage:"* ]]
 }
+
+@test "plugin can be reloaded" {
+  # Load plugin, then reload it
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && unset TREEHOUSE_PLUGIN_LOADED && source ${PLUGIN_DIR}/treehouse.plugin.zsh && command -v gwt"
+  [ "$status" -eq 0 ]
+}
+
+@test "TREEHOUSE_PLUGIN_DIR is exported and persists" {
+  # Check that TREEHOUSE_PLUGIN_DIR is exported so gwt-reload can access it
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && echo \$TREEHOUSE_PLUGIN_DIR"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"treehouse"* ]]
+}
+
+@test "TREEHOUSE_PLUGIN_LOADED is not readonly" {
+  # Verify we can unset TREEHOUSE_PLUGIN_LOADED (needed for reload)
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && unset TREEHOUSE_PLUGIN_LOADED && echo OK"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
+}
+
+@test "plugin reload maintains functionality" {
+  # Load, reload, and verify commands still work
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && unset TREEHOUSE_PLUGIN_LOADED && source ${PLUGIN_DIR}/treehouse.plugin.zsh && gwt help"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Treehouse"* ]]
+}
+
+@test "gwt-reload command is autoloadable" {
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && command -v gwt-reload"
+  [ "$status" -eq 0 ]
+}
+
+@test "gwt-repo command is autoloadable" {
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && command -v gwt-repo"
+  [ "$status" -eq 0 ]
+}

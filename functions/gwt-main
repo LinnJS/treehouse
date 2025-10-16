@@ -1,6 +1,5 @@
-# Navigate to the main repository directory.
+# DEPRECATED: Use 'gwt repo' instead.
+# This command is kept for backwards compatibility.
 
-local repo_root="$(_gwt_repo)" || return 1
-
-cd "$repo_root" || return 1
-echo "Switched to main repository: $repo_root"
+echo "Note: 'gwt-main' is deprecated. Use 'gwt repo' instead." >&2
+gwt-repo "$@"
