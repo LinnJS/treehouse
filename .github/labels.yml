@@ -1,0 +1,105 @@
+# GitHub Labels Configuration
+# These labels are used by the PR auto-labeler workflow
+#
+# To sync these labels with your repository, you can use:
+# https://github.com/EndBug/label-sync
+# or create them manually in GitHub UI
+
+# Type labels (based on conventional commits)
+- name: enhancement
+  color: '84b6eb'
+  description: 'New feature or request (feat)'
+
+- name: bug
+  color: 'd73a4a'
+  description: 'Bug fix (fix)'
+
+- name: documentation
+  color: '0075ca'
+  description: 'Documentation updates (docs)'
+
+- name: style
+  color: 'e99695'
+  description: 'Code style changes (style)'
+
+- name: refactor
+  color: 'fbca04'
+  description: 'Code refactoring (refactor)'
+
+- name: performance
+  color: '5319e7'
+  description: 'Performance improvements (perf)'
+
+- name: testing
+  color: 'bfdadc'
+  description: 'Test updates (test)'
+
+- name: maintenance
+  color: 'fef2c0'
+  description: 'Maintenance tasks (chore)'
+
+- name: ci/cd
+  color: '128a0c'
+  description: 'CI/CD changes (ci)'
+
+- name: build
+  color: 'ededed'
+  description: 'Build system changes (build)'
+
+- name: revert
+  color: 'ffffff'
+  description: 'Revert changes (revert)'
+
+- name: breaking change
+  color: 'd93f0b'
+  description: 'Breaking changes (major version bump)'
+
+# Size labels (auto-added based on PR size)
+- name: size/XS
+  color: '00ff00'
+  description: 'Extra small PR (< 10 lines)'
+
+- name: size/S
+  color: '77dd77'
+  description: 'Small PR (< 50 lines)'
+
+- name: size/M
+  color: 'ffff00'
+  description: 'Medium PR (< 200 lines)'
+
+- name: size/L
+  color: 'ff9900'
+  description: 'Large PR (< 500 lines)'
+
+- name: size/XL
+  color: 'ff0000'
+  description: 'Extra large PR (>= 500 lines)'
+
+# Additional useful labels
+- name: dependencies
+  color: '0366d6'
+  description: 'Dependency updates'
+
+- name: good first issue
+  color: '7057ff'
+  description: 'Good for newcomers'
+
+- name: help wanted
+  color: '008672'
+  description: 'Extra attention is needed'
+
+- name: question
+  color: 'd876e3'
+  description: 'Further information is requested'
+
+- name: wontfix
+  color: 'ffffff'
+  description: "This will not be worked on"
+
+- name: duplicate
+  color: 'cfd3d7'
+  description: 'This issue or pull request already exists'
+
+- name: invalid
+  color: 'e4e669'
+  description: 'Something is invalid'

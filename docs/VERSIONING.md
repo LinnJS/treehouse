@@ -82,6 +82,7 @@ chore(ci): Add automated release workflow
    - Determines version bump type (major/minor/patch)
    - Updates `VERSION` file
    - Updates `CHANGELOG.md` with categorized changes
+   - Updates `README.md` version badge automatically
    - Creates commit: `chore(release): bump version to X.Y.Z [skip ci]`
    - Creates git tag: `vX.Y.Z`
    - Creates GitHub release with changelog excerpt
@@ -162,6 +163,7 @@ Follows [Keep a Changelog](https://keepachangelog.com/) format:
   - Analyzes commits
   - Bumps version
   - Updates changelog
+  - Updates README version badge
   - Creates tag and GitHub release
 
 ### Commit Lint Workflow (`.github/workflows/commit-lint.yml`)
@@ -172,6 +174,40 @@ Follows [Keep a Changelog](https://keepachangelog.com/) format:
   - Checks all PR commits
   - Validates against conventional commits spec
   - Fails if invalid commits found
+
+### PR Auto-Labeler Workflow (`.github/workflows/pr-labeler.yml`)
+
+- **Triggers**: Pull requests opened, synchronized, or reopened
+- **Purpose**: Automatically label PRs based on content
+- **Actions**:
+  - Analyzes commit types in PR
+  - Adds type labels (enhancement, bug, documentation, etc.)
+  - Adds size label based on lines changed (XS/S/M/L/XL)
+  - Adds breaking change label if detected
+  - Posts summary comment on PR
+
+#### Labels Added
+
+**Type Labels** (based on conventional commits):
+
+- `enhancement` - New features (feat)
+- `bug` - Bug fixes (fix)
+- `documentation` - Documentation updates (docs)
+- `style` - Code style changes
+- `refactor` - Code refactoring
+- `performance` - Performance improvements (perf)
+- `testing` - Test updates (test)
+- `maintenance` - Maintenance tasks (chore)
+- `ci/cd` - CI/CD changes
+- `breaking change` - Breaking changes (major version)
+
+**Size Labels** (based on lines changed):
+
+- `size/XS` - < 10 lines
+- `size/S` - < 50 lines
+- `size/M` - < 200 lines
+- `size/L` - < 500 lines
+- `size/XL` - >= 500 lines
 
 ## Best Practices
 
