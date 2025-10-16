@@ -9,54 +9,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Modular plugin architecture** - Complete rewrite from monolithic to modular structure
-  - 26 user-facing commands in `functions/` directory
-  - 8 internal helper functions in `functions/internal/`
-  - 3 shell completion functions in `completions/`
-  - Configuration management in `lib/config.zsh`
-  - Color support system in `lib/colors.zsh`
-  - Minimal 74-line autoload-based loader in `treehouse.plugin.zsh`
-- **Comprehensive test suite** - 67 tests with bats-core
-  - 8 core tests for plugin loading and functionality
-  - 39 comprehensive functional tests for key commands (add, list, rm, status, lock, unlock)
-  - 20 autoload verification tests for remaining commands
-  - Shared test helpers in `tests/helpers/test_helper.bash`
-  - Test documentation in `tests/README.md` and `tests/commands/README.md`
-  - Makefile targets: `test`, `test-core`, `test-commands`
-  - GitHub Actions CI workflow testing on Ubuntu/macOS with Zsh 5.8/5.9
-- **All 26 commands fully functional**:
-  - Core: `list`, `add`, `rm`, `status`, `switch`, `open`, `main`, `prune`
-  - Advanced: `migrate`, `clean`, `mv`, `lock`, `unlock`, `locks`
-  - Archiving: `archive`, `unarchive`, `archives`
-  - GitHub: `pr`, `diff`, `stash-list`
-  - File management: `ignore`, `unignore`, `ignored`, `excludes`, `excludes-list`, `excludes-edit`
+- Modular plugin architecture with complete rewrite from monolithic to modular structure
+- 26 user-facing commands in `functions/` directory
+- 8 internal helper functions in `functions/internal/`
+- 3 shell completion functions in `completions/`
+- Configuration management in `lib/config.zsh`
+- Color support system in `lib/colors.zsh`
+- Minimal 74-line autoload-based loader in `treehouse.plugin.zsh`
+- Comprehensive test suite with 67 tests using bats-core
+- Core tests for plugin loading and functionality
+- Comprehensive functional tests for key commands (add, list, rm, status, lock, unlock)
+- Autoload verification tests for remaining commands
+- Shared test helpers in `tests/helpers/test_helper.bash`
+- Test documentation in `tests/README.md` and `tests/commands/README.md`
+- Makefile targets: `test`, `test-core`, `test-commands`
+- GitHub Actions CI workflow testing on Ubuntu/macOS with Zsh 5.8/5.9
+- All 26 commands fully functional: list, add, rm, status, switch, open, main, prune, migrate, clean, mv, lock,
+  unlock, locks, archive, unarchive, archives, pr, diff, stash-list, ignore, unignore, ignored, excludes,
+  excludes-list, excludes-edit
 - CODE_OF_CONDUCT.md following Contributor Covenant 2.1
 - SECURITY.md with vulnerability reporting guidelines
 - Issue templates for bug reports and feature requests
 - Pull request template with checklist
 - CI workflow for automated testing on Ubuntu and macOS with Zsh 5.8/5.9
 - Release workflow for automated GitHub releases from version tags
+- Automated semantic versioning with conventional commits
+- Commit message validation in CI
+- Version bump and changelog generation scripts
 - .editorconfig for consistent code formatting across editors
 - .gitattributes for consistent line endings
 - CITATION.cff for academic citations
 - .github/FUNDING.yml for sponsorship options
 - .github/dependabot.yml for automated dependency updates
 - CI badge in README.md
-- **Fixed empty internal helper functions** - `_gwt_repo`, `_gwt_name`, `_gwt_path_for`, etc.
-  - These were accidentally left empty during modularization
-  - Added proper implementations with branch name sanitization (feat/test → feat-test)
 - .markdownlint.json with VS Code extension compatible rules
 - .markdownlintignore to exclude PROMPT.md
 - Markdown linting to CI workflow
 
-### Changed
+### Fixed
 
-- **Complete architectural overhaul** - Migrated from monolithic 1946-line file to modular structure
+- Empty internal helper functions (`_gwt_repo`, `_gwt_name`, `_gwt_path_for`, etc.)
+- Added proper implementations with branch name sanitization (feat/test → feat-test)
+
+### Refactored
+
+- Complete architectural overhaul - Migrated from monolithic 1946-line file to modular structure
 - Plugin now uses Zsh autoload for lazy loading (improves startup performance)
 - Functions are individually loadable and testable
 - Removed duplicate `worktrees.plugin.zsh` file (renamed to `treehouse.plugin.zsh`)
 
-### Infrastructure
+### Maintenance
 
 - Established complete GitHub Actions CI/CD pipeline
 - Added Dependabot for keeping GitHub Actions updated

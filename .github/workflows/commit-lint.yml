@@ -1,0 +1,161 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint-commits:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          # Colors for output
+          RED='\033[0;31m'
+          GREEN='\033[0;32m'
+          YELLOW='\033[1;33m'
+          BLUE='\033[0;34m'
+          NC='\033[0m' # No Color
+
+          echo -e "${BLUE}Validating commit messages...${NC}"
+
+          # Get the base branch
+          BASE_REF="${{ github.event.pull_request.base.sha }}"
+          HEAD_REF="${{ github.event.pull_request.head.sha }}"
+
+          # Get all commits in this PR
+          COMMITS=$(git log --pretty=format:"%H %s" "$BASE_REF".."$HEAD_REF")
+
+          # Conventional commit pattern
+          # Types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test
+          PATTERN="^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9_-]+\))?(!)?: .+"
+
+          INVALID_COMMITS=()
+          VALID_COUNT=0
+          TOTAL_COUNT=0
+
+          while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            HASH=$(echo "$line" | awk '{print $1}')
+            MESSAGE=$(echo "$line" | cut -d' ' -f2-)
+
+            if [[ "$MESSAGE" =~ $PATTERN ]]; then
+              echo -e "${GREEN}✓${NC} $MESSAGE"
+              VALID_COUNT=$((VALID_COUNT + 1))
+            else
+              echo -e "${RED}✗${NC} $MESSAGE"
+              INVALID_COMMITS+=("$HASH: $MESSAGE")
+            fi
+          done <<< "$COMMITS"
+
+          echo ""
+          echo -e "${BLUE}Summary:${NC}"
+          echo -e "  Total commits: $TOTAL_COUNT"
+          echo -e "  Valid commits: ${GREEN}$VALID_COUNT${NC}"
+          echo -e "  Invalid commits: ${RED}$((TOTAL_COUNT - VALID_COUNT))${NC}"
+
+          # If there are invalid commits, fail the check
+          if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
+            echo ""
+            echo -e "${RED}❌ Found invalid commit messages:${NC}"
+            echo ""
+            for commit in "${INVALID_COMMITS[@]}"; do
+              echo -e "  ${RED}✗${NC} $commit"
+            done
+            echo ""
+            echo -e "${YELLOW}Commit messages must follow the Conventional Commits specification:${NC}"
+            echo ""
+            echo -e "  Format: ${BLUE}type(scope): description${NC}"
+            echo ""
+            echo -e "  Types:"
+            echo -e "    ${GREEN}feat${NC}     - New feature"
+            echo -e "    ${GREEN}fix${NC}      - Bug fix"
+            echo -e "    ${GREEN}docs${NC}     - Documentation changes"
+            echo -e "    ${GREEN}style${NC}    - Code style changes (formatting, etc.)"
+            echo -e "    ${GREEN}refactor${NC} - Code refactoring"
+            echo -e "    ${GREEN}perf${NC}     - Performance improvements"
+            echo -e "    ${GREEN}test${NC}     - Test changes"
+            echo -e "    ${GREEN}chore${NC}    - Build process or auxiliary tool changes"
+            echo -e "    ${GREEN}ci${NC}       - CI configuration changes"
+            echo -e "    ${GREEN}build${NC}    - Build system changes"
+            echo -e "    ${GREEN}revert${NC}   - Revert a previous commit"
+            echo ""
+            echo -e "  Examples:"
+            echo -e "    ${BLUE}feat(auth): Add login functionality${NC}"
+            echo -e "    ${BLUE}fix(api): Resolve null pointer exception${NC}"
+            echo -e "    ${BLUE}docs(readme): Update README with installation steps${NC}"
+            echo -e "    ${BLUE}feat(auth)!: Breaking change in auth flow${NC}"
+            echo ""
+            echo -e "  For more info: ${BLUE}https://www.conventionalcommits.org${NC}"
+
+            # Add to step summary
+            {
+              echo "## ❌ Commit Message Validation Failed"
+              echo ""
+              echo "The following commits do not follow the Conventional Commits specification:"
+              echo ""
+              for commit in "${INVALID_COMMITS[@]}"; do
+                echo "- \`$commit\`"
+              done
+              echo ""
+              echo "### Required Format"
+              echo ""
+              echo "\`\`\`"
+              echo "type(scope): description"
+              echo "\`\`\`"
+              echo ""
+              echo "### Valid Types"
+              echo ""
+              echo "- \`feat\` - New feature"
+              echo "- \`fix\` - Bug fix"
+              echo "- \`docs\` - Documentation changes"
+              echo "- \`style\` - Code style changes"
+              echo "- \`refactor\` - Code refactoring"
+              echo "- \`perf\` - Performance improvements"
+              echo "- \`test\` - Test changes"
+              echo "- \`chore\` - Maintenance tasks"
+              echo "- \`ci\` - CI changes"
+              echo "- \`build\` - Build system changes"
+              echo ""
+              echo "### Examples"
+              echo ""
+              echo "- \`feat(auth): Add login functionality\`"
+              echo "- \`fix(api): Resolve null pointer exception\`"
+              echo "- \`docs(readme): Update README\`"
+              echo ""
+              echo "Learn more: [Conventional Commits](https://www.conventionalcommits.org)"
+            } >> $GITHUB_STEP_SUMMARY
+
+            exit 1
+          fi
+
+          echo ""
+          echo -e "${GREEN}✓ All commit messages are valid${NC}"
+
+          # Add success to step summary
+          {
+            echo "## ✅ Commit Message Validation Passed"
+            echo ""
+            echo "All $VALID_COUNT commit(s) follow the Conventional Commits specification."
+          } >> $GITHUB_STEP_SUMMARY
+
+          exit 0
