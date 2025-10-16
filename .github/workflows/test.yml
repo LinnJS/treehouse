@@ -1,0 +1,105 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with Zsh ${{ matrix.zsh-version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        zsh-version: ['5.8', '5.9']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Zsh ${{ matrix.zsh-version }} (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh git
+
+      - name: Install Zsh (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install zsh
+
+      - name: Verify Zsh installation
+        run: |
+          zsh --version
+          which zsh
+          git --version
+
+      - name: Install BATS
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get install -y bats
+          else
+            brew install bats-core
+          fi
+
+      - name: Verify BATS installation
+        run: |
+          bats --version
+
+      - name: Run quick load test
+        run: make quick
+
+      - name: Run all tests
+        run: make test
+
+      - name: Run core tests
+        run: make test-core
+
+      - name: Run command tests
+        run: make test-commands
+
+  lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Run markdownlint
+        run: markdownlint '**/*.md' --ignore node_modules --ignore .claude
+
+  report:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: always()
+
+    steps:
+      - name: Report test results
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.test.result }}" == "success" ]]; then
+            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "${{ needs.lint.result }}" == "success" ]]; then
+            echo "✅ Markdown lint passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Markdown lint failed" >> $GITHUB_STEP_SUMMARY
+          fi

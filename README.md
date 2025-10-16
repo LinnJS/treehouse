@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/linnjs/treehouse/releases)
 [![Zsh](https://img.shields.io/badge/zsh-%3E%3D5.8-green.svg)](https://www.zsh.org/)
+[![Tests](https://github.com/linnjs/treehouse/actions/workflows/test.yml/badge.svg)](https://github.com/linnjs/treehouse/actions/workflows/test.yml)
 
 > Multiple branches, zero context switching hassle, live in worktrees!
 
@@ -193,7 +194,7 @@ See full configuration options in the documentation (coming soon).
 
 **Current Version**: v0.1.0 (Initial Release)
 
-The plugin features a complete modular architecture with 26 commands, comprehensive test coverage, and lazy loading for optimal performance.
+The plugin features a complete modular architecture with 26 commands, comprehensive test coverage (67 tests), and lazy loading for optimal performance.
 
 **Roadmap**:
 

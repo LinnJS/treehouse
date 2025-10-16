@@ -1,1 +1,2 @@
-
+# Check if direnv is available
+command -v direnv >/dev/null 2>&1

@@ -16,12 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configuration management in `lib/config.zsh`
   - Color support system in `lib/colors.zsh`
   - Minimal 74-line autoload-based loader in `treehouse.plugin.zsh`
-- **Comprehensive test suite** - 34 tests with bats-core
+- **Comprehensive test suite** - 67 tests with bats-core
   - 8 core tests for plugin loading and functionality
-  - 26 command tests verifying autoloadability
+  - 39 comprehensive functional tests for key commands (add, list, rm, status, lock, unlock)
+  - 20 autoload verification tests for remaining commands
   - Shared test helpers in `tests/helpers/test_helper.bash`
   - Test documentation in `tests/README.md` and `tests/commands/README.md`
   - Makefile targets: `test`, `test-core`, `test-commands`
+  - GitHub Actions CI workflow testing on Ubuntu/macOS with Zsh 5.8/5.9
 - **All 26 commands fully functional**:
   - Core: `list`, `add`, `rm`, `status`, `switch`, `open`, `main`, `prune`
   - Advanced: `migrate`, `clean`, `mv`, `lock`, `unlock`, `locks`
@@ -40,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .github/FUNDING.yml for sponsorship options
 - .github/dependabot.yml for automated dependency updates
 - CI badge in README.md
+- **Fixed empty internal helper functions** - `_gwt_repo`, `_gwt_name`, `_gwt_path_for`, etc.
+  - These were accidentally left empty during modularization
+  - Added proper implementations with branch name sanitization (feat/test → feat-test)
 - .markdownlint.json with VS Code extension compatible rules
 - .markdownlintignore to exclude PROMPT.md
 - Markdown linting to CI workflow

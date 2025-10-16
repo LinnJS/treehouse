@@ -111,9 +111,9 @@ make help
 
 - `make help` - Show all available commands
 - `make quick` - Quick plugin load test
-- `make test` - Run all tests (34 tests: 8 core + 26 commands)
+- `make test` - Run all tests (67 tests: 8 core + 59 command tests)
 - `make test-core` - Run core tests only (8 tests)
-- `make test-commands` - Run command tests only (26 tests)
+- `make test-commands` - Run command tests only (59 tests)
 - `make install` - Install to Oh My Zsh
 - `make clean` - Clean test artifacts
 
