@@ -7,7 +7,7 @@
 # Note: 'make reload' cannot automatically source the plugin due to
 # subprocess limitations. Use 'source reload.sh' directly instead.
 
-.PHONY: all test test-core test-commands install clean help quick verbose reload
+.PHONY: all test test-core test-commands lint lint-fix install clean help quick verbose reload
 
 # Default target - show help
 all: help
@@ -20,6 +20,8 @@ help:
 	@echo "  make test          Run all tests (core + commands)"
 	@echo "  make test-core     Run core tests only (plugin loading)"
 	@echo "  make test-commands Run command tests only"
+	@echo "  make lint          Run markdown linting"
+	@echo "  make lint-fix      Auto-fix markdown lint issues"
 	@echo "  make quick         Quick load test (silent)"
 	@echo "  make verbose       Load test with output (for debugging)"
 	@echo "  make reload        Show reload instructions"
@@ -56,6 +58,26 @@ test-commands:
 	}
 	@echo "Running command tests..."
 	@bats tests/commands/*.bats
+
+# Markdown linting
+lint:
+	@command -v npx >/dev/null 2>&1 || { \
+		echo "Error: npx is not installed (comes with Node.js)"; \
+		echo "Install with: brew install node (macOS) or see https://nodejs.org"; \
+		exit 1; \
+	}
+	@echo "Running markdown lint..."
+	@npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude
+
+# Auto-fix markdown lint issues
+lint-fix:
+	@command -v npx >/dev/null 2>&1 || { \
+		echo "Error: npx is not installed (comes with Node.js)"; \
+		echo "Install with: brew install node (macOS) or see https://nodejs.org"; \
+		exit 1; \
+	}
+	@echo "Auto-fixing markdown lint issues..."
+	@npx --yes markdownlint-cli '**/*.md' --ignore node_modules --ignore .claude --fix
 
 # Install to user's oh-my-zsh
 install:

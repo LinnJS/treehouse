@@ -2,7 +2,7 @@
 
 ## Structure
 
-```
+```text
 tests/
 ├── core.bats                    # Plugin loading and core functionality tests
 ├── commands/                    # One test file per command (26 files)
@@ -17,21 +17,25 @@ tests/
 ## Running Tests
 
 **All tests (default):**
+
 ```bash
 make test
 ```
 
 **Core tests only:**
+
 ```bash
 make test-core
 ```
 
 **Command tests only:**
+
 ```bash
 make test-commands
 ```
 
 **Single command test:**
+
 ```bash
 bats tests/commands/gwt-add.bats
 ```
@@ -78,6 +82,7 @@ Located in `tests/helpers/test_helper.bash`:
 - git - Version control
 
 Install bats:
+
 ```bash
 # macOS
 brew install bats-core

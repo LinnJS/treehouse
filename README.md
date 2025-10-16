@@ -7,7 +7,9 @@
 
 > Multiple branches, zero context switching hassle, live in worktrees!
 
-**treehouse** brings the power of git worktrees to your fingertips. Work on multiple branches simultaneously without the context switching hassle - no more stashing, no more lost work, just pure productivity. Run tests on one branch while developing on another, and keep your main branch always ready to ship.
+**treehouse** brings the power of git worktrees to your fingertips. Work on multiple branches simultaneously without
+the context switching hassle - no more stashing, no more lost work, just pure productivity. Run tests on one branch
+while developing on another, and keep your main branch always ready to ship.
 
 ## ✨ Features
 
@@ -194,7 +196,8 @@ See full configuration options in the documentation (coming soon).
 
 **Current Version**: v0.1.0 (Initial Release)
 
-The plugin features a complete modular architecture with 26 commands, comprehensive test coverage (67 tests), and lazy loading for optimal performance.
+The plugin features a complete modular architecture with 26 commands, comprehensive test coverage (67 tests),
+and lazy loading for optimal performance.
 
 **Roadmap**:
 
@@ -205,6 +208,7 @@ The plugin features a complete modular architecture with 26 commands, comprehens
 ## 🛠️ Development
 
 See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for complete development guide including:
+
 - Local testing and debugging
 - Project structure
 - Adding new commands

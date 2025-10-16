@@ -274,6 +274,7 @@ source ~/.zshrc
 7. Update CHANGELOG.md
 
 Example function structure:
+
 ```zsh
 # functions/gwt-mycommand
 # Description of the command
