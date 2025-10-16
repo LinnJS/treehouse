@@ -15,123 +15,136 @@
 
 # Type labels (based on conventional commits)
 - name: enhancement
-  color: '7B68EE'
-  description: '✨ New feature or enhancement - adds functionality (conventional commit: feat)'
+  color: 'A28EFF'
+  description: '✨ Enhancement - improves existing functionality'
 
 - name: bug
-  color: 'DC143C'
+  color: 'FF1744'
   description: '🐛 Bug fix - resolves an issue or error (conventional commit: fix)'
 
 - name: documentation
-  color: '20B2AA'
+  color: '00E5FF'
   description: '📚 Documentation improvements - updates docs, comments, or guides (conventional commit: docs)'
 
 - name: style
-  color: 'FF69B4'
+  color: 'FF4081'
   description: '💅 Code style changes - formatting, whitespace, missing semicolons (conventional commit: style)'
 
 - name: refactor
-  color: 'FFD700'
+  color: 'FFEA00'
   description: '♻️ Code refactoring - restructuring without changing behavior (conventional commit: refactor)'
 
 - name: performance
-  color: '9370DB'
+  color: 'AA00FF'
   description: '⚡ Performance improvements - optimizations and speed enhancements (conventional commit: perf)'
 
 - name: testing
-  color: '48D1CC'
+  color: '00E676'
   description: '🧪 Test updates - adding or updating tests (conventional commit: test)'
 
 - name: maintenance
-  color: 'D2B48C'
+  color: 'FFB300'
   description: '🔧 Maintenance tasks - routine upkeep and housekeeping (conventional commit: chore)'
 
 - name: ci/cd
-  color: '228B22'
+  color: '00C853'
   description: '🚀 CI/CD changes - workflow automation and deployment (conventional commit: ci)'
 
 - name: build
-  color: '808080'
+  color: '9E9E9E'
   description: '🏗️ Build system changes - build tools, dependencies, config (conventional commit: build)'
 
 - name: revert
-  color: '696969'
+  color: '78909C'
   description: '⏪ Revert changes - undoing previous commits (conventional commit: revert)'
 
 - name: breaking change
-  color: 'FF4500'
+  color: 'FF3D00'
   description: '💥 BREAKING CHANGE - incompatible API changes requiring major version bump'
 
 # Size labels (auto-added based on PR size)
 - name: size/XS
   color: '00E676'
-  description: '📏 Extra small change - less than 10 lines modified'
+  description: '🐭 Extra small change - less than 10 lines modified'
 
 - name: size/S
   color: '76FF03'
-  description: '📏 Small change - less than 50 lines modified'
+  description: '🐿️ Small change - less than 50 lines modified'
 
 - name: size/M
   color: 'FDD835'
-  description: '📏 Medium change - less than 200 lines modified'
+  description: '🐕 Medium change - less than 200 lines modified'
 
 - name: size/L
   color: 'FF6D00'
-  description: '📏 Large change - less than 500 lines modified'
+  description: '🐘 Large change - less than 500 lines modified'
 
 - name: size/XL
   color: 'D50000'
-  description: '📏 Extra large change - 500+ lines modified, consider splitting'
+  description: '🦖 Extra large change - 500+ lines modified, consider splitting'
 
 # Additional useful labels
 - name: dependencies
-  color: '0366D6'
+  color: '2196F3'
   description: '📦 Dependency updates - library and package upgrades'
 
 - name: security
-  color: 'B22222'
+  color: 'D50000'
   description: '🔒 Security fixes - patches for vulnerabilities'
 
 - name: good first issue
-  color: '7057FF'
+  color: '7C4DFF'
   description: '👋 Good for newcomers - great starting point for new contributors'
 
 - name: help wanted
-  color: '008672'
+  color: '00BFA5'
   description: '🙏 Help wanted - seeking community input or assistance'
 
 - name: priority: high
-  color: 'FF0000'
+  color: 'FF1744'
   description: '🔴 High priority - needs immediate attention'
 
 - name: priority: medium
-  color: 'FFA500'
+  color: 'FF9100'
   description: '🟡 Medium priority - should be addressed soon'
 
 - name: priority: low
-  color: '00FF00'
+  color: '69F0AE'
   description: '🟢 Low priority - can be deferred'
 
 - name: question
-  color: 'BA68C8'
+  color: 'E040FB'
   description: '❓ Question - seeking clarification or discussion'
 
 - name: wontfix
-  color: 'E0E0E0'
+  color: 'CFD8DC'
   description: '⛔ Won\'t fix - this will not be worked on'
 
 - name: duplicate
-  color: '9E9E9E'
+  color: 'B0BEC5'
   description: '🔄 Duplicate - this issue or PR already exists elsewhere'
 
 - name: invalid
-  color: 'FFEB3B'
+  color: 'FDD835'
   description: '❌ Invalid - not applicable or incorrect'
 
 - name: stale
-  color: 'BDBDBD'
+  color: 'EEEEEE'
   description: '⏳ Stale - no recent activity, may be closed'
 
 - name: blocked
-  color: 'B71C1C'
+  color: 'C62828'
   description: '🚫 Blocked - waiting on external dependency or decision'
+
+# Additional workflow labels
+- name: chore
+  color: '00B8D4'
+  description: '🧹 Repository chore or maintenance work'
+
+- name: feature
+  color: 'FF6EC7'
+  description: '🌟 New feature - adds brand new functionality (conventional commit: feat)'
+
+- name: hacktoberfest-accepted
+  color: 'FF8500'
+  description: '🎃 Hacktoberfest accepted - auto-applied in October for contributors'
