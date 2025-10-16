@@ -33,9 +33,14 @@ teardown() {
 }
 
 @test "configuration variables are set" {
+  # Check that GWT_ROOT is set in test environment
   [[ -n "$GWT_ROOT" ]]
-  [[ -n "$GWT_OPEN_CMD" ]]
   [[ "$GWT_ROOT" == "/tmp/treehouse-test-"* ]]
+
+  # Check that GWT_OPEN_CMD is set when plugin is loaded
+  run zsh -c "source ${PLUGIN_DIR}/treehouse.plugin.zsh && echo \$GWT_OPEN_CMD"
+  [ "$status" -eq 0 ]
+  [[ -n "$output" ]]
 }
 
 @test "help command runs without error" {

@@ -48,12 +48,10 @@ teardown() {
   # Create worktree
   zsh -c "$(load_plugin) && gwt-add test-branch" >/dev/null
 
-  # Try to switch without specifying branch (no fzf available in CI)
-  run zsh -c "$(load_plugin) && cd '$TEST_REPO' && gwt-switch"
-  # Either succeeds with fzf or fails with error message
-  if [ "$status" -ne 0 ]; then
-    [[ "$output" == *"fzf"* ]] || [[ "$output" == *"branch"* ]]
-  fi
+  # Mock _gwt_has_fzf to return false, simulating fzf not being available
+  run zsh -c "$(load_plugin) && cd '$TEST_REPO' && _gwt_has_fzf() { return 1; } && gwt-switch"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"fzf"* ]] || [[ "$output" == *"branch"* ]]
 }
 
 @test "gwt-switch: fails when worktree does not exist" {
