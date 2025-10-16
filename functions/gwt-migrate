@@ -1,0 +1,123 @@
+# Convert main repository to use worktrees workflow.
+
+local safe_branch=""
+local force_detach=0
+
+# Parse arguments
+while [[ "$1" != "" ]]; do
+  case "$1" in
+    --branch)
+      shift
+      safe_branch="$1"
+      shift
+      ;;
+    --detach)
+      force_detach=1
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Usage: gwt migrate [--branch <branch>] [--detach]" >&2
+      return 1
+      ;;
+  esac
+done
+
+local repo_root="$(_gwt_repo)" || return 1
+local git_common_dir="$(cd "$repo_root" && git rev-parse --git-common-dir 2>/dev/null)"
+
+# Check if already in a worktree
+if [[ "$git_common_dir" != ".git" ]]; then
+  echo "Already in a worktree. Migration only works from main repository."
+  return 1
+fi
+
+local current_branch="$(_gwt_branch)"
+local repo="$(_gwt_name)" || return 1
+
+# If --detach is specified, just detach and exit
+if [[ $force_detach -eq 1 ]]; then
+  echo "Detaching HEAD in main repository..."
+  git checkout --detach HEAD || return 1
+  echo "✓ Main repo is now in detached HEAD state"
+  echo ""
+  echo "You can now use: gwt <branch-name> to create/switch to worktrees"
+  return 0
+fi
+
+# Determine safe branch if not specified
+if [[ -z "$safe_branch" ]]; then
+  if git show-ref --verify --quiet "refs/heads/main"; then
+    safe_branch="main"
+  elif git show-ref --verify --quiet "refs/heads/master"; then
+    safe_branch="master"
+  else
+    echo "Error: No main/master branch found. Specify branch with --branch <name> or use --detach" >&2
+    return 1
+  fi
+fi
+
+# Check if safe branch exists
+if ! git show-ref --verify --quiet "refs/heads/$safe_branch"; then
+  echo "Error: Branch '$safe_branch' does not exist" >&2
+  return 1
+fi
+
+# Check if safe branch is the current branch - if so, nothing to migrate
+if [[ "$current_branch" == "$safe_branch" ]]; then
+  echo "Already on '$safe_branch'. Nothing to migrate."
+  echo "You can now use: gwt <branch-name> to create worktrees"
+  return 0
+fi
+
+echo "Migrating to worktrees workflow..."
+echo ""
+echo "Current branch: $current_branch"
+echo "Target: $safe_branch (or detached HEAD if already used)"
+echo ""
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD 2>/dev/null; then
+  echo "Error: You have uncommitted changes. Please commit or stash them first." >&2
+  return 1
+fi
+
+# Check if current branch worktree already exists
+local dest="$(_gwt_path_for "$repo" "$current_branch")" || return 1
+
+if [[ -d "$dest" ]]; then
+  echo "Note: Worktree already exists for '$current_branch' at: $dest"
+  echo "Skipping worktree creation..."
+else
+  echo "Step 1: Creating worktree for '$current_branch'..."
+  gwt-add "$current_branch" || return 1
+fi
+
+echo ""
+echo "Step 2: Switching main repo to '$safe_branch'..."
+
+# Check if safe_branch is already used by a worktree
+local safe_branch_dest="$(_gwt_path_for "$repo" "$safe_branch")"
+if [[ -d "$safe_branch_dest" ]]; then
+  echo "Note: '$safe_branch' worktree already exists at: $safe_branch_dest"
+  echo "Checking out detached HEAD instead to free up the main repo..."
+  git checkout --detach HEAD || return 1
+  echo ""
+  echo "Main repo is now in detached HEAD state (this is safe and expected)."
+else
+  git checkout "$safe_branch" || return 1
+fi
+
+echo ""
+echo "✓ Migration complete!"
+echo ""
+echo "Your work is now at: $dest"
+echo "To continue working: gwt $current_branch"
+echo ""
+echo "Main repo location: $repo_root"
+echo "└─ You can safely ignore this directory now - work in worktrees instead!"
+echo ""
+echo "Future workflow:"
+echo "  gwt <branch-name>    # Switch to or create worktree"
+echo "  gwt list             # List all worktrees"
+echo "  gwt help             # Show all commands"

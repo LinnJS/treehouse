@@ -1,0 +1,184 @@
+# Clean up worktrees based on criteria (merged, stale, old).
+
+local repo="$(_gwt_name)" || return 1
+local base="$GWT_ROOT/$repo"
+local check_merged=0
+local check_age=0
+local age_days=0
+local remove_all=0
+local dry_run=0
+local include_archived=0
+
+# Parse arguments
+while [[ "$1" != "" ]]; do
+  case "$1" in
+    --merged)
+      check_merged=1
+      shift
+      ;;
+    --older-than)
+      check_age=1
+      shift
+      age_days="$1"
+      shift
+      ;;
+    --all)
+      remove_all=1
+      shift
+      ;;
+    --include-archived)
+      include_archived=1
+      shift
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Usage: gwt clean [--merged] [--older-than <days>] [--all] [--include-archived] [--dry-run]" >&2
+      return 1
+      ;;
+  esac
+done
+
+if [[ ! -d "$base" ]]; then
+  echo "No worktrees found for '$repo' under $base" >&2
+  return 1
+fi
+
+# Get main branch name
+local main_branch="main"
+if ! git show-ref --verify --quiet "refs/heads/main"; then
+  if git show-ref --verify --quiet "refs/heads/master"; then
+    main_branch="master"
+  fi
+fi
+
+local -a to_remove
+local removed_count=0
+
+# Function to check and collect worktrees from a directory
+_check_worktrees() {
+  local check_base="$1"
+  local is_archive="$2"
+
+  for worktree in "$check_base"/*; do
+    if [[ ! -d "$worktree" ]]; then
+      continue
+    fi
+
+    local branch="$(basename "$worktree")"
+
+    # Skip archived worktrees directory when checking main base
+    if [[ "$is_archive" == "0" ]] && [[ "$branch" == ".archive" ]]; then
+      continue
+    fi
+
+    # Skip locked worktrees
+    if [[ -f "$worktree/.gwt-lock" ]]; then
+      continue
+    fi
+
+    local should_remove=0
+
+    # Check if --all flag is set
+    if [[ $remove_all -eq 1 ]]; then
+      should_remove=1
+    fi
+
+    # Check if merged
+    if [[ $check_merged -eq 1 ]]; then
+      (
+        cd "$worktree" || exit
+        if git branch --merged "$main_branch" 2>/dev/null | grep -q "^[* ]*$(git rev-parse --abbrev-ref HEAD)$"; then
+          should_remove=1
+        fi
+      )
+    fi
+
+    # Check age
+    if [[ $check_age -eq 1 ]]; then
+      local mod_time=$(stat -f %m "$worktree" 2>/dev/null || stat -c %Y "$worktree" 2>/dev/null)
+      local current_time=$(date +%s)
+      local age_seconds=$((age_days * 86400))
+      if [[ $((current_time - mod_time)) -gt $age_seconds ]]; then
+        should_remove=1
+      fi
+    fi
+
+    if [[ $should_remove -eq 1 ]]; then
+      if [[ "$is_archive" == "1" ]]; then
+        # Store full path for archived worktrees with marker
+        to_remove+=("ARCHIVE:$worktree")
+      else
+        to_remove+=("$branch")
+      fi
+    fi
+  done
+}
+
+# Collect worktrees to remove from main directory
+_check_worktrees "$base" "0"
+
+# If --include-archived is set, also check archived worktrees
+if [[ $include_archived -eq 1 ]] && [[ -d "$base/.archive" ]]; then
+  _check_worktrees "$base/.archive" "1"
+fi
+
+# Show what will be removed
+if [[ ${#to_remove[@]} -eq 0 ]]; then
+  echo "No worktrees match the criteria for removal."
+  return 0
+fi
+
+echo "The following worktrees will be removed:"
+for item in "${to_remove[@]}"; do
+  if [[ "$item" == ARCHIVE:* ]]; then
+    local path="${item#ARCHIVE:}"
+    echo "  - $(basename "$path") (archived)"
+  else
+    echo "  - $item"
+  fi
+done
+
+if [[ $dry_run -eq 1 ]]; then
+  echo ""
+  echo "(Dry run - nothing was actually removed)"
+  return 0
+fi
+
+# Confirmation for --all
+if [[ $remove_all -eq 1 ]]; then
+  echo ""
+  echo -n "Are you sure you want to remove ${#to_remove[@]} worktrees? [y/N] "
+  read confirm
+  if [[ "$confirm" != "y" ]] && [[ "$confirm" != "Y" ]]; then
+    echo "Cancelled."
+    return 0
+  fi
+fi
+
+# Remove worktrees
+echo ""
+for item in "${to_remove[@]}"; do
+  if [[ "$item" == ARCHIVE:* ]]; then
+    # Archived worktree - remove directly
+    local path="${item#ARCHIVE:}"
+    local branch="$(basename "$path")"
+    if rm -rf "$path" 2>/dev/null; then
+      echo "✓ Removed archived worktree: $branch"
+      ((removed_count++))
+    else
+      echo "✗ Failed to remove archived worktree: $branch" >&2
+    fi
+  else
+    # Regular worktree - use gwt rm
+    if gwt-rm "$item" 2>/dev/null; then
+      ((removed_count++))
+    fi
+  fi
+done
+
+echo ""
+echo "✓ Removed $removed_count worktree(s)"

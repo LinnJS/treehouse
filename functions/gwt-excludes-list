@@ -1,0 +1,18 @@
+# List all patterns in .git/info/exclude.
+
+local repo_root="$(_gwt_repo)" || return 1
+local exclude_file="$repo_root/.git/info/exclude"
+
+if [[ ! -f "$exclude_file" ]]; then
+  echo "No local exclude file found"
+  return 0
+fi
+
+echo "${GWT_COLOR_BOLD_CYAN}Local exclude patterns:${GWT_COLOR_RESET}"
+echo "${GWT_COLOR_DIM}File: $exclude_file${GWT_COLOR_RESET}"
+echo ""
+
+# Show only non-comment, non-empty lines
+grep -v '^#' "$exclude_file" | grep -v '^$' | sed 's/^/  /' || {
+  echo "  ${GWT_COLOR_DIM}(empty)${GWT_COLOR_RESET}"
+}

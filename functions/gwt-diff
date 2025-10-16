@@ -1,0 +1,30 @@
+# Compare two worktrees or branches.
+
+local branch1="$1"
+local branch2="$2"
+
+if [[ -z "$branch1" ]] || [[ -z "$branch2" ]]; then
+  echo "Usage: gwt diff <branch1> <branch2>" >&2
+  return 1
+fi
+
+local repo="$(_gwt_name)" || return 1
+local path1="$(_gwt_path_for "$repo" "$branch1")"
+local path2="$(_gwt_path_for "$repo" "$branch2")"
+
+# Check if worktrees exist, otherwise use branch names
+if [[ ! -d "$path1" ]]; then
+  echo "Note: '$branch1' worktree not found, comparing branch instead"
+  path1="$branch1"
+fi
+
+if [[ ! -d "$path2" ]]; then
+  echo "Note: '$branch2' worktree not found, comparing branch instead"
+  path2="$branch2"
+fi
+
+echo "${GWT_COLOR_BOLD_CYAN}Comparing: $branch1 ↔ $branch2${GWT_COLOR_RESET}"
+echo ""
+
+# Show diff
+git diff "$branch1".."$branch2"

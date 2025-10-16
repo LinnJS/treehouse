@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "treehouse"
+abstract: "Multiple branches, zero context switching hassle, live in worktrees!"
+type: software
+authors:
+  - family-names: "treehouse contributors"
+repository-code: "https://github.com/linnjs/treehouse"
+url: "https://github.com/linnjs/treehouse"
+license: MIT
+version: 0.1.0
+date-released: "2025-10-15"
+keywords:
+  - zsh
+  - git
+  - worktrees
+  - developer-tools
+  - zsh-plugin

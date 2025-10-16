@@ -1,0 +1,29 @@
+# List all archived worktrees.
+
+local repo="$(_gwt_name)" || return 1
+local archive_base="$GWT_ROOT/$repo/.archive"
+
+if [[ ! -d "$archive_base" ]]; then
+  echo "No archived worktrees found for '$repo'" >&2
+  return 0
+fi
+
+echo "${GWT_COLOR_BOLD_CYAN}Archived Worktrees:${GWT_COLOR_RESET}"
+echo ""
+
+local found=0
+
+for worktree in "$archive_base"/*; do
+  if [[ ! -d "$worktree" ]]; then
+    continue
+  fi
+
+  local branch="$(basename "$worktree")"
+  echo "  📦 $branch"
+  echo "     ${GWT_COLOR_DIM}$worktree${GWT_COLOR_RESET}"
+  found=1
+done
+
+if [[ $found -eq 0 ]]; then
+  echo "  ${GWT_COLOR_DIM}No archived worktrees${GWT_COLOR_RESET}"
+fi

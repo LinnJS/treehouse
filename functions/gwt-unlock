@@ -1,0 +1,24 @@
+# Unlock a worktree to allow removal.
+
+local branch="$1"
+
+if [[ -z "$branch" ]]; then
+  echo "Usage: gwt unlock <branch>" >&2
+  return 1
+fi
+
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+if [[ ! -d "$dest" ]]; then
+  echo "Error: Worktree not found: $dest" >&2
+  return 1
+fi
+
+if [[ ! -f "$dest/.gwt-lock" ]]; then
+  echo "Worktree '$branch' is not locked." >&2
+  return 1
+fi
+
+rm "$dest/.gwt-lock"
+echo "✓ Unlocked worktree: $branch"

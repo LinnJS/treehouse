@@ -1,0 +1,6 @@
+# Navigate to the main repository directory.
+
+local repo_root="$(_gwt_repo)" || return 1
+
+cd "$repo_root" || return 1
+echo "Switched to main repository: $repo_root"

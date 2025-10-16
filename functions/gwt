@@ -1,0 +1,75 @@
+# Quick switch to worktree (create if needed), or dispatch to commands
+
+local br="$1"
+
+if [[ -z "$br" ]]; then
+  echo "Usage: gwt <branch>" >&2
+  echo "" >&2
+  echo "Quick access to worktrees - creates if needed, then switches to it." >&2
+  echo "" >&2
+  echo "Examples:" >&2
+  echo "  gwt main              # Switch to main branch worktree" >&2
+  echo "  gwt feature-auth      # Create and switch to feature-auth" >&2
+  echo "  gwt help              # Show detailed help" >&2
+  return 1
+fi
+
+# Check if the argument is a command (delegate to gwt-<command>)
+if command -v "gwt-$br" >/dev/null 2>&1; then
+  shift
+  "gwt-$br" "$@"
+  return $?
+fi
+
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$br")" || return 1
+
+# Check if worktree directory exists
+if [[ -d "$dest" ]]; then
+  # Worktree exists, switch to it
+  cd "$dest" || return 1
+else
+  # Check if we're in the main repo and the current branch matches
+  local current_branch="$(_gwt_branch)"
+  local repo_root="$(_gwt_repo)"
+  local git_common_dir="$(cd "$repo_root" && git rev-parse --git-common-dir 2>/dev/null)"
+
+  # If we're in main repo (not a worktree) and already on the target branch
+  if [[ "$git_common_dir" == ".git" ]] && [[ "$current_branch" == "$br" ]]; then
+    echo "Error: Branch '$br' is already checked out in main repository"
+    echo "Location: $repo_root"
+    echo ""
+    echo "Quick fix - migrate to worktrees:"
+    echo "  gwt migrate"
+    echo ""
+    echo "Or manually:"
+    echo "  1. git checkout main"
+    echo "  2. gwt $br"
+    return 1
+  fi
+
+  # Try to create worktree
+  gwt-add "$br" || return 1
+  cd "$dest" || return 1
+fi
+
+# Run post-switch hook if configured
+if [[ -n "$GWT_ON_SWITCH_CMD" ]]; then
+  eval "$GWT_ON_SWITCH_CMD \"$dest\"" || {
+    echo "Warning: GWT_ON_SWITCH_CMD failed" >&2
+  }
+fi
+
+# Optional: create/attach tmux session
+if [[ "$GWT_USE_TMUX" == "1" ]] && _gwt_has_tmux; then
+  # Sanitize session name (alphanumeric and hyphens only)
+  local sess="${repo//[^A-Za-z0-9]/-}-${br//[^A-Za-z0-9]/-}"
+
+  if tmux has-session -t "$sess" 2>/dev/null; then
+    # Attach to existing session
+    tmux attach -t "$sess"
+  else
+    # Create new session with descriptive window name
+    tmux new -s "$sess" "$SHELL" \; rename-window "$repo:$br"
+  fi
+fi

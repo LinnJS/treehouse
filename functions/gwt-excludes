@@ -1,0 +1,26 @@
+# Add pattern to .git/info/exclude for local ignoring.
+
+local pattern="$1"
+
+if [[ -z "$pattern" ]]; then
+  echo "Usage: gwt excludes <pattern>" >&2
+  return 1
+fi
+
+local repo_root="$(_gwt_repo)" || return 1
+local exclude_file="$repo_root/.git/info/exclude"
+
+# Ensure the file exists
+mkdir -p "$(dirname "$exclude_file")"
+touch "$exclude_file"
+
+# Check if pattern already exists
+if grep -Fxq "$pattern" "$exclude_file" 2>/dev/null; then
+  echo "Pattern already exists in excludes: $pattern"
+  return 0
+fi
+
+# Add pattern
+echo "$pattern" >> "$exclude_file"
+echo "✓ Added to local excludes: $pattern"
+echo "  File: $exclude_file"

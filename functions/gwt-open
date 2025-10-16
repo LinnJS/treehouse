@@ -1,0 +1,30 @@
+# Open a worktree in your configured editor/IDE.
+
+local repo="$(_gwt_name)" || return 1
+local dest=""
+
+if [[ -z "$1" ]]; then
+  # No argument - use picker or current path
+  if _gwt_has_fzf; then
+    # Use --plain to avoid emoji in paths for fzf selection
+    dest="$(gwt-list --plain | fzf --prompt="open> " --height=15 --reverse)"
+    [[ -z "$dest" ]] && return 1
+  else
+    dest="$(_gwt_current_path)"
+  fi
+else
+  # Branch name provided
+  dest="$(_gwt_path_for "$repo" "$1")"
+fi
+
+# Validate destination exists
+if [[ ! -d "$dest" ]]; then
+  echo "Error: No such worktree: $dest" >&2
+  return 1
+fi
+
+# Open in configured editor
+# Split command on spaces for proper execution (supports "code --new-window" etc.)
+local -a cmd_parts
+cmd_parts=("${(@s/ /)GWT_OPEN_CMD}")
+"${cmd_parts[@]}" "$dest"

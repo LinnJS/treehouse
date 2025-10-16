@@ -1,0 +1,96 @@
+# Create a new worktree for a branch.
+
+local branch="$1"
+local from_branch=""
+local track_remote=0
+local fetch_remote=0
+
+if [[ -z "$branch" ]]; then
+  echo "Usage: gwt add <branch> [--from <base>] [--track] [--remote]" >&2
+  return 1
+fi
+
+# Parse additional arguments
+shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --from)
+      shift
+      from_branch="$1"
+      shift
+      ;;
+    --track)
+      track_remote=1
+      shift
+      ;;
+    --remote)
+      fetch_remote=1
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      return 1
+      ;;
+  esac
+done
+
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+# Check if worktree already exists
+if [[ -d "$dest" ]]; then
+  echo "Worktree already exists: $dest" >&2
+  return 1
+fi
+
+# Ensure parent directory exists
+mkdir -p "$(dirname "$dest")"
+
+# Create the worktree
+echo "Creating worktree for '$branch'..."
+
+if [[ -n "$from_branch" ]]; then
+  # Create from specific branch
+  git worktree add "$dest" -b "$branch" "$from_branch" || return 1
+elif [[ $fetch_remote -eq 1 ]]; then
+  # Fetch and create from remote
+  git fetch origin "$branch" || return 1
+  git worktree add "$dest" "$branch" || return 1
+elif git show-ref --verify --quiet "refs/heads/$branch"; then
+  # Branch exists locally
+  git worktree add "$dest" "$branch" || return 1
+else
+  # Create new branch
+  git worktree add "$dest" -b "$branch" || return 1
+fi
+
+# Set up tracking if requested or auto-track is enabled
+if [[ $track_remote -eq 1 ]] || [[ "$GWT_AUTO_TRACK" == "1" ]]; then
+  (
+    cd "$dest" || exit 1
+    if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+      git branch --set-upstream-to="origin/$branch" "$branch" 2>/dev/null
+    fi
+  )
+fi
+
+# Create .envrc if direnv is enabled
+if [[ "$GWT_DIR_ENVRC" == "1" ]] && _gwt_has_direnv; then
+  if [[ -n "$GWT_TEMPLATE_DIR" ]] && [[ -f "$GWT_TEMPLATE_DIR/.envrc" ]]; then
+    cp "$GWT_TEMPLATE_DIR/.envrc" "$dest/.envrc"
+  else
+    echo "# Worktree-specific environment" > "$dest/.envrc"
+  fi
+  (cd "$dest" && direnv allow 2>/dev/null)
+fi
+
+# Copy template files if configured
+if [[ -n "$GWT_TEMPLATE_DIR" ]] && [[ -d "$GWT_TEMPLATE_DIR" ]]; then
+  for file in "$GWT_TEMPLATE_DIR"/*; do
+    if [[ -f "$file" ]] && [[ "$(basename "$file")" != ".envrc" ]]; then
+      cp "$file" "$dest/"
+    fi
+  done
+fi
+
+echo "✓ Created worktree: $dest"

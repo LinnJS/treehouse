@@ -1,0 +1,12 @@
+# List all files with skip-worktree flag set.
+
+echo "${GWT_COLOR_BOLD_CYAN}Files with skip-worktree flag:${GWT_COLOR_RESET}"
+echo ""
+
+local ignored_files=$(git ls-files -v | grep '^S' | cut -c 3-)
+
+if [[ -z "$ignored_files" ]]; then
+  echo "  ${GWT_COLOR_DIM}No files are being ignored${GWT_COLOR_RESET}"
+else
+  echo "$ignored_files" | sed 's/^/  /'
+fi

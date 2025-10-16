@@ -1,0 +1,62 @@
+# Show status of all worktrees.
+
+local repo="$(_gwt_name)" || return 1
+local base="$GWT_ROOT/$repo"
+local verbose=0
+
+# Parse arguments
+if [[ "$1" == "-v" ]] || [[ "$1" == "--verbose" ]]; then
+  verbose=1
+fi
+
+if [[ ! -d "$base" ]]; then
+  echo "No worktrees found for '$repo'" >&2
+  return 1
+fi
+
+echo "${GWT_COLOR_BOLD_CYAN}Worktree Status for '$repo'${GWT_COLOR_RESET}"
+echo ""
+
+local has_changes=0
+
+for worktree in "$base"/*; do
+  if [[ ! -d "$worktree" ]]; then
+    continue
+  fi
+
+  local branch="$(basename "$worktree")"
+
+  # Skip archived directory
+  if [[ "$branch" == ".archive" ]]; then
+    continue
+  fi
+
+  # Check status
+  local status_output=$(git -C "$worktree" status --short 2>/dev/null)
+  local has_uncommitted=0
+
+  if [[ -n "$status_output" ]]; then
+    has_uncommitted=1
+    has_changes=1
+  fi
+
+  # Show worktree info
+  if [[ $verbose -eq 1 ]] || [[ $has_uncommitted -eq 1 ]]; then
+    local lock_indicator=""
+    if [[ -f "$worktree/.gwt-lock" ]]; then
+      lock_indicator=" ${GWT_COLOR_YELLOW}🔒${GWT_COLOR_RESET}"
+    fi
+
+    if [[ $has_uncommitted -eq 1 ]]; then
+      echo "${GWT_COLOR_BOLD_YELLOW}${branch}${GWT_COLOR_RESET}${lock_indicator}"
+      echo "$status_output" | sed 's/^/  /'
+      echo ""
+    else
+      echo "${GWT_COLOR_GREEN}${branch}${GWT_COLOR_RESET}${lock_indicator} - clean"
+    fi
+  fi
+done
+
+if [[ $has_changes -eq 0 ]]; then
+  echo "${GWT_COLOR_GREEN}All worktrees are clean ✓${GWT_COLOR_RESET}"
+fi

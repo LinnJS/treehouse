@@ -1,0 +1,12 @@
+# Edit .git/info/exclude file directly.
+
+local repo_root="$(_gwt_repo)" || return 1
+local exclude_file="$repo_root/.git/info/exclude"
+
+# Ensure the file exists
+mkdir -p "$(dirname "$exclude_file")"
+touch "$exclude_file"
+
+# Open in editor
+local editor="${EDITOR:-${GWT_OPEN_CMD:-vim}}"
+$editor "$exclude_file"

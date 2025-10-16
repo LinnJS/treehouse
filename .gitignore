@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Zsh
+*.zwc
+*.zwc.old
+.zcompdump*
+
+# Editor backups
+*.swp
+*.swo
+*~
+.*.sw?
+\#*\#
+.\#*
+*.backup
+*.bak
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Test artifacts
+test-results/
+coverage/
+.claude/
+
+# Symlinks
+# Prevent circular symlink from being tracked
+treehouse

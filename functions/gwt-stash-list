@@ -1,0 +1,40 @@
+# List stashes across all worktrees.
+
+local repo="$(_gwt_name)" || return 1
+local base="$GWT_ROOT/$repo"
+
+if [[ ! -d "$base" ]]; then
+  echo "No worktrees found for '$repo'" >&2
+  return 1
+fi
+
+echo "${GWT_COLOR_BOLD_CYAN}Stashes across all worktrees:${GWT_COLOR_RESET}"
+echo ""
+
+local found=0
+
+for worktree in "$base"/*; do
+  if [[ ! -d "$worktree" ]]; then
+    continue
+  fi
+
+  local branch="$(basename "$worktree")"
+
+  # Skip archived directory
+  if [[ "$branch" == ".archive" ]]; then
+    continue
+  fi
+
+  local stash_list=$(git -C "$worktree" stash list 2>/dev/null)
+
+  if [[ -n "$stash_list" ]]; then
+    echo "${GWT_COLOR_BOLD_YELLOW}$branch:${GWT_COLOR_RESET}"
+    echo "$stash_list" | sed 's/^/  /'
+    echo ""
+    found=1
+  fi
+done
+
+if [[ $found -eq 0 ]]; then
+  echo "  ${GWT_COLOR_DIM}No stashes found${GWT_COLOR_RESET}"
+fi

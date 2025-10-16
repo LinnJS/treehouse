@@ -1,0 +1,57 @@
+# Remove a worktree and optionally its branch.
+
+local branch="$1"
+
+if [[ -z "$branch" ]]; then
+  echo "Usage: gwt rm <branch>" >&2
+  return 1
+fi
+
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+# Check if worktree exists
+if [[ ! -d "$dest" ]]; then
+  echo "Worktree not found: $dest" >&2
+  return 1
+fi
+
+# Check if locked
+if [[ -f "$dest/.gwt-lock" ]]; then
+  echo "Error: Worktree '$branch' is locked. Unlock it first with: gwt unlock $branch" >&2
+  return 1
+fi
+
+# Check for uncommitted changes
+if ! git -C "$dest" diff-index --quiet HEAD 2>/dev/null; then
+  echo "Warning: Worktree has uncommitted changes!" >&2
+  echo -n "Continue with removal? [y/N] "
+  read confirm
+  if [[ "$confirm" != "y" ]] && [[ "$confirm" != "Y" ]]; then
+    echo "Cancelled."
+    return 0
+  fi
+fi
+
+# Remove the worktree
+echo "Removing worktree '$branch'..."
+git worktree remove "$dest" --force || {
+  # If git worktree remove fails, try manual removal
+  rm -rf "$dest" || return 1
+}
+
+# Remove the branch if it's not the main branch
+if [[ "$branch" != "main" ]] && [[ "$branch" != "master" ]]; then
+  echo -n "Delete branch '$branch'? [y/N] "
+  read confirm
+  if [[ "$confirm" == "y" ]] || [[ "$confirm" == "Y" ]]; then
+    git branch -D "$branch" 2>/dev/null
+  fi
+fi
+
+# Auto-prune if enabled
+if [[ "$GWT_PRUNE_ON_RM" == "1" ]]; then
+  git worktree prune 2>/dev/null
+fi
+
+echo "✓ Removed worktree: $branch"

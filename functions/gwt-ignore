@@ -1,0 +1,17 @@
+# Ignore local changes to tracked files using skip-worktree.
+
+local file="$1"
+
+if [[ -z "$file" ]]; then
+  echo "Usage: gwt ignore <file>" >&2
+  return 1
+fi
+
+if [[ ! -f "$file" ]]; then
+  echo "Error: File not found: $file" >&2
+  return 1
+fi
+
+git update-index --skip-worktree "$file" || return 1
+echo "✓ Ignoring local changes to: $file"
+echo "  (Use 'gwt unignore $file' to stop ignoring)"

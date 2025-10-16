@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+# Ensure shell scripts keep LF
+*.sh text eol=lf
+*.zsh text eol=lf
+
+# Markdown treated as text
+*.md text

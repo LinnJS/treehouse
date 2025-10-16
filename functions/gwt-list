@@ -1,0 +1,50 @@
+# List all worktrees for the current repository.
+
+local repo="$(_gwt_name)" || return 1
+local base="$GWT_ROOT/$repo"
+local plain_mode=0
+
+# Parse arguments
+if [[ "$1" == "--plain" ]]; then
+  plain_mode=1
+fi
+
+if [[ ! -d "$base" ]]; then
+  echo "No worktrees found for '$repo' under $base" >&2
+  return 1
+fi
+
+# List worktrees
+for worktree in "$base"/*; do
+  if [[ ! -d "$worktree" ]]; then
+    continue
+  fi
+
+  local branch="$(basename "$worktree")"
+
+  # Skip archived directory
+  if [[ "$branch" == ".archive" ]]; then
+    continue
+  fi
+
+  if [[ $plain_mode -eq 1 ]]; then
+    # Plain mode - just the path for scripting/piping
+    echo "$worktree"
+  else
+    # Fancy mode with status indicators
+    local indicators=""
+
+    # Check if locked
+    if [[ -f "$worktree/.gwt-lock" ]]; then
+      indicators="${indicators}${GWT_COLOR_YELLOW}🔒${GWT_COLOR_RESET} "
+    fi
+
+    # Check for uncommitted changes
+    if ! git -C "$worktree" diff-index --quiet HEAD 2>/dev/null; then
+      indicators="${indicators}${GWT_COLOR_RED}●${GWT_COLOR_RESET} "
+    fi
+
+    echo "${GWT_COLOR_BOLD_CYAN}${branch}${GWT_COLOR_RESET} ${indicators}"
+    echo "  ${GWT_COLOR_DIM}${worktree}${GWT_COLOR_RESET}"
+  fi
+done

@@ -1,0 +1,4 @@
+# Clean up stale worktree references.
+
+git worktree prune
+echo "✓ Pruned stale worktree references"

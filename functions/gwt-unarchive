@@ -1,0 +1,30 @@
+# Restore an archived worktree.
+
+local branch="$1"
+
+if [[ -z "$branch" ]]; then
+  echo "Usage: gwt unarchive <branch>" >&2
+  return 1
+fi
+
+local repo="$(_gwt_name)" || return 1
+local archive_base="$GWT_ROOT/$repo/.archive"
+local src="$archive_base/$branch"
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+if [[ ! -d "$src" ]]; then
+  echo "Error: Archived worktree not found: $src" >&2
+  return 1
+fi
+
+if [[ -d "$dest" ]]; then
+  echo "Error: Worktree '$branch' already exists" >&2
+  return 1
+fi
+
+# Move worktree back from archive
+echo "Restoring worktree '$branch'..."
+mv "$src" "$dest" || return 1
+
+echo "✓ Restored worktree: $branch"
+echo "  Location: $dest"

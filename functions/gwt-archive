@@ -1,0 +1,34 @@
+# Archive a worktree (hide from list without deleting).
+
+local branch="$1"
+
+if [[ -z "$branch" ]]; then
+  echo "Usage: gwt archive <branch>" >&2
+  return 1
+fi
+
+local repo="$(_gwt_name)" || return 1
+local src="$(_gwt_path_for "$repo" "$branch")" || return 1
+local archive_base="$GWT_ROOT/$repo/.archive"
+local dest="$archive_base/$branch"
+
+if [[ ! -d "$src" ]]; then
+  echo "Error: Worktree not found: $src" >&2
+  return 1
+fi
+
+if [[ -d "$dest" ]]; then
+  echo "Error: Archived worktree '$branch' already exists" >&2
+  return 1
+fi
+
+# Create archive directory if it doesn't exist
+mkdir -p "$archive_base"
+
+# Move worktree to archive
+echo "Archiving worktree '$branch'..."
+mv "$src" "$dest" || return 1
+
+echo "✓ Archived worktree: $branch"
+echo "  Location: $dest"
+echo "  Restore with: gwt unarchive $branch"

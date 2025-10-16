@@ -1,0 +1,53 @@
+# Create worktree from a GitHub pull request.
+
+local pr_number="$1"
+
+if [[ -z "$pr_number" ]]; then
+  echo "Usage: gwt pr <pr-number>" >&2
+  return 1
+fi
+
+# Check if gh is available
+if ! command -v gh >/dev/null 2>&1; then
+  echo "Error: GitHub CLI (gh) is not installed." >&2
+  echo "Install it from: https://cli.github.com/" >&2
+  return 1
+fi
+
+# Get PR information
+local pr_info=$(gh pr view "$pr_number" --json headRefName,number,title 2>&1)
+if [[ $? -ne 0 ]]; then
+  echo "Error: Failed to fetch PR #$pr_number" >&2
+  echo "$pr_info" >&2
+  return 1
+fi
+
+local branch=$(echo "$pr_info" | grep -o '"headRefName":"[^"]*"' | cut -d'"' -f4)
+local title=$(echo "$pr_info" | grep -o '"title":"[^"]*"' | cut -d'"' -f4)
+
+if [[ -z "$branch" ]]; then
+  echo "Error: Could not determine branch name for PR #$pr_number" >&2
+  return 1
+fi
+
+echo "Creating worktree for PR #$pr_number: $title"
+echo "Branch: $branch"
+echo ""
+
+# Checkout the PR
+gh pr checkout "$pr_number" || {
+  echo "Error: Failed to checkout PR #$pr_number" >&2
+  return 1
+}
+
+# Create worktree if it doesn't exist
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+if [[ ! -d "$dest" ]]; then
+  gwt-add "$branch" || return 1
+fi
+
+# Switch to the worktree
+cd "$dest" || return 1
+echo "✓ Switched to PR #$pr_number worktree: $dest"

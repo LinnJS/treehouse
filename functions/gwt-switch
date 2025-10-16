@@ -1,0 +1,50 @@
+# Switch to an existing worktree directory.
+
+local repo="$(_gwt_name)" || return 1
+local pick="$1"
+
+# If no branch specified, use fzf picker or error
+if [[ -z "$pick" ]]; then
+  if _gwt_has_fzf; then
+    # Use --plain to avoid emoji in paths for fzf selection
+    pick="$(gwt-list --plain | fzf --prompt="worktrees> " --height=15 --reverse)"
+    [[ -z "$pick" ]] && return 1
+  else
+    echo "Error: Please specify a branch or install fzf for interactive picker." >&2
+    echo "Usage: gwt switch <branch>" >&2
+    return 1
+  fi
+else
+  # Allow branch name shortcut - expand to full path
+  local dest="$(_gwt_path_for "$repo" "$pick")"
+  if [[ -d "$dest" ]]; then
+    pick="$dest"
+  fi
+fi
+
+# Change to the selected worktree directory
+cd "$pick" || return 1
+
+# Run post-switch hook if configured
+if [[ -n "$GWT_ON_SWITCH_CMD" ]]; then
+  eval "$GWT_ON_SWITCH_CMD \"$pick\"" || {
+    echo "Warning: GWT_ON_SWITCH_CMD failed" >&2
+  }
+fi
+
+# Optional: create/attach tmux session
+if [[ "$GWT_USE_TMUX" == "1" ]] && _gwt_has_tmux; then
+  # Extract branch name from path by removing the repo base directory
+  local base="$GWT_ROOT/$repo"
+  local br="${pick#$base/}"
+  # Sanitize session name (alphanumeric and hyphens only)
+  local sess="${repo//[^A-Za-z0-9]/-}-${br//[^A-Za-z0-9]/-}"
+
+  if tmux has-session -t "$sess" 2>/dev/null; then
+    # Attach to existing session
+    tmux attach -t "$sess"
+  else
+    # Create new session with descriptive window name
+    tmux new -s "$sess" "$SHELL" \; rename-window "$repo:$br"
+  fi
+fi

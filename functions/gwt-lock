@@ -1,0 +1,22 @@
+# Lock a worktree to prevent accidental removal.
+
+local branch="$1"
+
+# If no branch specified, lock current worktree
+if [[ -z "$branch" ]]; then
+  local current_path="$(_gwt_current_path)"
+  touch "$current_path/.gwt-lock"
+  echo "✓ Locked current worktree: $(basename "$current_path")"
+  return 0
+fi
+
+local repo="$(_gwt_name)" || return 1
+local dest="$(_gwt_path_for "$repo" "$branch")" || return 1
+
+if [[ ! -d "$dest" ]]; then
+  echo "Error: Worktree not found: $dest" >&2
+  return 1
+fi
+
+touch "$dest/.gwt-lock"
+echo "✓ Locked worktree: $branch"

@@ -1,0 +1,11 @@
+# Stop ignoring local changes to a file.
+
+local file="$1"
+
+if [[ -z "$file" ]]; then
+  echo "Usage: gwt unignore <file>" >&2
+  return 1
+fi
+
+git update-index --no-skip-worktree "$file" || return 1
+echo "✓ No longer ignoring: $file"
